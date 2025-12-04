@@ -105,6 +105,30 @@ jobs:
                 schema: TRANSFORM
           EOF
 
+      - name: Configure dbt profiles.yml
+        run: |
+          mkdir -p ~/.dbt
+          cat <<EOF > ~/.dbt/profiles.yml
+          snowflake_profile:
+            target: prod
+            outputs:
+              prod:
+                type: snowflake
+                account: ${{ secrets.SNOWFLAKE_ACCOUNT }}
+                user: ${{ secrets.SNOWFLAKE_USER }}
+                password: ${{ secrets.SNOWFLAKE_PASSWORD }}
+                role: ${{ secrets.SNOWFLAKE_ROLE }}
+                warehouse: ${{ secrets.SNOWFLAKE_WAREHOUSE }}
+                database: ${{ secrets.SNOWFLAKE_DATABASE }}
+                schema: TRANSFORM
+
+          # 👇 NEW FIX — lets dbt access BRONZE as well
+                schema_mapping:
+                  bronze: BRONZE
+                  transform: TRANSFORM
+    EOF
+
+
       # Ensure dbt SQL compiles correctly
       - name: Run dbt compile
         working-directory: uber_dbt
