@@ -4,6 +4,7 @@
 .env
 */.env
 **/.env
+***/.env
 
 # -----------------------------
 # Python
@@ -22,7 +23,7 @@ docker/dags/*.log
 docker/dags/airflow.db
 docker/dags/airflow.sqlite
 docker/dags/airflow.cfg
-
+docker/.env
 # -----------------------------
 # Docker
 # -----------------------------
@@ -50,7 +51,11 @@ uber_dbt/run_results.json
 # -----------------------------
 storage/data/
 storage/minio_data/
+storage/.env
 storage/*.tmp
+
+
+simulation/.env
 
 # -----------------------------
 # Kafka
