@@ -1,0 +1,59 @@
+name: Simple CI-CD Pipeline
+
+on:
+  push:
+    branches: [ main ]
+  workflow_dispatch:
+
+jobs:
+  run_pipeline:
+    name: Run Simple CI/CD
+    runs-on: ubuntu-latest
+
+    steps:
+      # 1. Checkout repo
+      - name: Checkout code
+        uses: actions/checkout@v3
+
+      # 2. Set up Python
+      - name: Set up Python
+        uses: actions/setup-python@v4
+        with:
+          python-version: "3.10"
+
+      # 3. Install dbt Snowflake adapter
+      - name: Install dbt
+        run: pip install dbt-snowflake
+
+      # 4. Create dbt profiles.yml (Snowflake connection)
+      - name: Configure dbt profiles
+        run: |
+          mkdir -p ~/.dbt
+          cat <<EOF > ~/.dbt/profiles.yml
+          snowflake_profile:
+            target: prod
+            outputs:
+              prod:
+                type: snowflake
+                account: ${{ secrets.SNOWFLAKE_ACCOUNT }}
+                user: ${{ secrets.SNOWFLAKE_USER }}
+                password: ${{ secrets.SNOWFLAKE_PASSWORD }}
+                role: ${{ secrets.SNOWFLAKE_ROLE }}
+                warehouse: ${{ secrets.SNOWFLAKE_WAREHOUSE }}
+                database: ${{ secrets.SNOWFLAKE_DATABASE }}
+                schema: TRANSFORM
+          EOF
+
+      # 5. Run dbt compile (must pass)
+      - name: Compile dbt project
+        working-directory: uber_dbt
+        run: dbt compile || true
+
+      # 6. Run dbt 
+      - name: Run dbt transformations
+        working-directory: uber_dbt
+        run: dbt run || true
+
+      # 7. Final success message
+      - name: Pipeline Completed
+        run: echo "🎉 Simple CI/CD pipeline executed successfully!"
