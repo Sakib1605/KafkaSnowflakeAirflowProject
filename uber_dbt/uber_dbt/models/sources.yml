@@ -1,0 +1,8 @@
+version: 2
+
+sources:
+  - name: bronze
+    database: UBER_DB
+    schema: BRONZE
+    tables:
+      - name: uber_events_bronze
