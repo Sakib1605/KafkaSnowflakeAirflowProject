@@ -1,4 +1,87 @@
+# -----------------------------
+# ENVIRONMENT FILES (VERY IMPORTANT)
+# -----------------------------
+.env
+*/.env
+**/.env
+
+# -----------------------------
+# Python
+# -----------------------------
 __pycache__/
+*.pyc
+*.pyo
+*.pyd
+*.egg-info/
+
+# -----------------------------
+# Airflow (docker/dags)
+# -----------------------------
+docker/dags/logs/
+docker/dags/*.log
+docker/dags/airflow.db
+docker/dags/airflow.sqlite
+docker/dags/airflow.cfg
+
+# -----------------------------
+# Docker
+# -----------------------------
+*.pid
+*.pid.lock
+docker-compose.override.yml
+
+# -----------------------------
+# MacOS junk
+# -----------------------------
+.DS_Store
+*.DS_Store
+
+# -----------------------------
+# dbt
+# -----------------------------
+uber_dbt/target/
+uber_dbt/dbt_packages/
+uber_dbt/logs/
+uber_dbt/manifest.json
+uber_dbt/run_results.json
+
+# -----------------------------
+# MinIO / Storage
+# -----------------------------
+storage/data/
+storage/minio_data/
+storage/*.tmp
+
+# -----------------------------
+# Kafka
+# -----------------------------
+kafka-logs/
+zookeeper/
+simulation/kafka_data/
+
+# -----------------------------
+# Secrets / Credentials
+# -----------------------------
+*.key
+*.pem
+*.cert
+*.json
+secrets.yaml
+snowflake_credentials.json
+
+# -----------------------------
+# IDE files
+# -----------------------------
+.vscode/
+.idea/
+
+# -----------------------------
+# Temporary files
+# -----------------------------
+tmp/
+temp/
+*.tmp/
+
 logs/
 plugins/
 analyses/
@@ -9,5 +92,5 @@ target/
 tests/
 simulation/.env/
 storage/.env/
-docker/.env
+docker/.env/
 dbt_project.yml
