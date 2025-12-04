@@ -7,4 +7,7 @@ seeds/
 snapshots/
 target/
 tests/
+simulation/.env/
+storage/.env/
+docker/.env
 dbt_project.yml
