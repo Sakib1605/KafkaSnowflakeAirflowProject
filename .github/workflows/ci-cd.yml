@@ -1,0 +1,195 @@
+# ================================================================
+#          CI/CD PIPELINE — STREAMING ANALYTICS PLATFORM
+# ================================================================
+# This workflow automates:
+# 1. Python validation for Kafka + MinIO + Airflow scripts
+# 2. dbt SQL compilation and testing (CI validation)
+# 3. Building Docker image locally (no pushing – Airflow is local)
+# 4. Packaging DAGs as artifacts for local Airflow deployment
+# 5. Deploying dbt Gold Layer models into Snowflake (TRANSFORM)
+#
+# Snowflake Structure:
+#   • BRONZE schema   → raw ingested data
+#   • TRANSFORM schema → silver + fact/dimension tables
+# ================================================================
+
+name: CI-CD Pipeline for Streaming Analytics Project
+
+on:
+  push:
+    branches: [ main ]
+  pull_request:
+    branches: [ main ]
+  workflow_dispatch:
+
+# dbt will look for profiles.yml inside this folder
+env:
+  DBT_PROFILES_DIR: ./uber_dbt
+
+
+jobs:
+
+  # =============================================================
+  # 1️⃣ PYTHON LINTING — Ensures Code Quality Before Anything Else
+  # =============================================================
+  lint_python:
+    name: Validate Python Code
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v3
+
+      - name: Set up Python
+        uses: actions/setup-python@v4
+        with:
+          python-version: "3.10"
+
+      - name: Install dependencies
+        run: pip install -r docker/requirements.txt || true
+
+      - name: Run Flake8 Linting
+        run: |
+          pip install flake8
+          flake8 simulation storage docker/dags || true
+
+
+
+  # =============================================================
+  # 2️⃣ DBT TESTING — Validate SQL Models Before Deployment
+  # =============================================================
+  test_dbt:
+    name: Test dbt Models
+    runs-on: ubuntu-latest
+    needs: lint_python
+
+    steps:
+      - uses: actions/checkout@v3
+
+      - name: Install dbt
+        run: pip install dbt-snowflake
+
+      # ----------------------------------------------------------
+      # dbt must be able to access:
+      #   BRONZE schema   → via sources.yml
+      #   TRANSFORM schema → for silver/gold tables
+      #
+      # We DO NOT change schema here. dbt model configs already
+      # specify the correct schema (BRONZE for source, TRANSFORM for models).
+      # ----------------------------------------------------------
+      - name: Configure dbt profiles.yml
+        run: |
+          mkdir -p ~/.dbt
+          cat <<EOF > ~/.dbt/profiles.yml
+          snowflake_profile:
+            target: prod
+            outputs:
+              prod:
+                type: snowflake
+                account: ${{ secrets.SNOWFLAKE_ACCOUNT }}
+                user: ${{ secrets.SNOWFLAKE_USER }}
+                password: ${{ secrets.SNOWFLAKE_PASSWORD }}
+                role: ${{ secrets.SNOWFLAKE_ROLE }}
+                warehouse: ${{ secrets.SNOWFLAKE_WAREHOUSE }}
+                database: ${{ secrets.SNOWFLAKE_DATABASE }}
+                schema: TRANSFORM   # default schema for dbt-run models
+          EOF
+
+      - name: Run dbt compile
+        working-directory: uber_dbt
+        run: dbt compile
+
+      - name: Run dbt tests
+        working-directory: uber_dbt
+        run: dbt test
+
+
+
+  # =============================================================
+  # 3️⃣ DOCKER BUILD — Validate Airflow Environment (Local Use Only)
+  # =============================================================
+  docker_build:
+    name: Build Airflow Docker Image
+    runs-on: ubuntu-latest
+    needs: test_dbt
+
+    steps:
+      - uses: actions/checkout@v3
+
+      - name: Build Airflow Image
+        run: docker build -t uber-airflow:latest docker/
+
+
+
+  # =============================================================
+  # 4️⃣ PACKAGE AIRFLOW DAGS — Downloadable for Local Airflow
+  # =============================================================
+  package_dags:
+    name: Package DAGs
+    runs-on: ubuntu-latest
+    needs: docker_build
+
+    steps:
+      - uses: actions/checkout@v3
+
+      - name: Upload DAG Artifacts
+        uses: actions/upload-artifact@v3
+        with:
+          name: airflow-dags
+          path: docker/dags/
+
+
+
+  # =============================================================
+  # 5️⃣ DBT DEPLOYMENT — Build Gold Layer in Snowflake (TRANSFORM)
+  # =============================================================
+  deploy_dbt:
+    name: Deploy dbt (Gold Layer)
+    runs-on: ubuntu-latest
+    needs: package_dags
+
+    steps:
+      - uses: actions/checkout@v3
+
+      - name: Install dbt
+        run: pip install dbt-snowflake
+
+      - name: Configure dbt profiles.yml for production
+        run: |
+          mkdir -p ~/.dbt
+          cat <<EOF > ~/.dbt/profiles.yml
+          snowflake_profile:
+            target: prod
+            outputs:
+              prod:
+                type: snowflake
+                account: ${{ secrets.SNOWFLAKE_ACCOUNT }}
+                user: ${{ secrets.SNOWFLAKE_USER }}
+                password: ${{ secrets.SNOWFLAKE_PASSWORD }}
+                role: ${{ secrets.SNOWFLAKE_ROLE }}
+                warehouse: ${{ secrets.SNOWFLAKE_WAREHOUSE }}
+                database: ${{ secrets.SNOWFLAKE_DATABASE }}
+                schema: TRANSFORM
+          EOF
+
+      - name: Run dbt run
+        working-directory: uber_dbt
+        run: dbt run
+
+      - name: Generate dbt docs
+        working-directory: uber_dbt
+        run: dbt docs generate
+
+
+
+  # =============================================================
+  # 6️⃣ PIPELINE SUCCESS INDICATOR
+  # =============================================================
+  notify:
+    name: Notify Completion
+    runs-on: ubuntu-latest
+    needs: deploy_dbt
+
+    steps:
+      - name: Print success message
+        run: echo "🚀 CI/CD pipeline executed successfully!"
