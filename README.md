@@ -6,19 +6,18 @@ This project showcases a **fully automated, production-style real-time data pipe
 ---
 
 ## 🔧 Tools & Technologies Used
-+------------------------------------------------------------------+
-|                           TOOLS USED                             |
-+------------------------------------------------------------------+
-| • **Kafka** – real-time streaming backbone                       |
-| • **Python + Faker** – synthetic streaming event generator       |
-| • **MinIO** – S3-compatible Bronze storage                       |
-| • **Airflow** – scheduling & ingestion automation                |
-| • **Snowflake** – cloud data warehouse (Bronze/Silver/Gold)      |
-| • **dbt** – transformations, modelling, testing                  |
-| • **Docker** – containerized deployment                          |
-| • **GitHub Actions** – CI/CD for dbt validation                  |
-| • **Power BI** – visualization for business insights             |
-+------------------------------------------------------------------+
+| Tool            | Purpose                                        |
+|-----------------|------------------------------------------------|
+| Kafka           | Real-time streaming backbone                    |
+| Python + Faker  | Synthetic event generator                       |
+| MinIO           | S3-compatible Bronze raw storage               |
+| Airflow         | Workflow scheduling & ingestion automation     |
+| Snowflake       | Cloud data warehouse (Bronze/Silver/Gold)      |
+| dbt             | Transformations, modeling, testing             |
+| Docker          | Containerized deployment                       |
+| GitHub Actions  | CI/CD for dbt validation & deployment          |
+| Power BI        | Analytics & visualization layer                |
+
 
 
 ---
