@@ -6,15 +6,20 @@ This project showcases a **fully automated, production-style real-time data pipe
 ---
 
 ## 🔧 Tools & Technologies Used
-- **Kafka** – real-time streaming backbone  
-- **Python + Faker** – synthetic event generator  
-- **MinIO** – S3-compatible object storage for Bronze raw data  
-- **Airflow** – workflow scheduling & ingestion automation  
-- **Snowflake** – cloud data warehouse with Medallion layers  
-- **dbt** – transformations, modeling, testing, lineage  
-- **Docker** – containerized deployment  
-- **GitHub Actions** – CI/CD for dbt build & validation  
-- **Power BI** – visualization layer for business insights  
++------------------------------------------------------------------+
+|                           TOOLS USED                             |
++------------------------------------------------------------------+
+| • **Kafka** – real-time streaming backbone                       |
+| • **Python + Faker** – synthetic streaming event generator       |
+| • **MinIO** – S3-compatible Bronze storage                       |
+| • **Airflow** – scheduling & ingestion automation                |
+| • **Snowflake** – cloud data warehouse (Bronze/Silver/Gold)      |
+| • **dbt** – transformations, modelling, testing                  |
+| • **Docker** – containerized deployment                          |
+| • **GitHub Actions** – CI/CD for dbt validation                  |
+| • **Power BI** – visualization for business insights             |
++------------------------------------------------------------------+
+
 
 ---
 
@@ -147,8 +152,6 @@ A star-schema model enables smooth slicers and flexible Q&A by business teams.
 ---
 
 # 🎯 Conclusion
-
-This project unifies the best elements of today’s **modern data ecosystem**:
 
 This project brings together the best of today's modern data ecosystem - Kafka, MinIO, Airflow, Snowflake, dbt, and Power BI to demonstrate how raw operational events can be transformed into reliable, business-ready insights. Each tool plays a strategic role in the pipeline, and together they create a seamless flow of data from ingestion all the way to executive reporting.
 Kafka ensures that every event is captured in real time, providing the kind of live operational visibility that fast-moving businesses depend on. MinIO acts as the raw data landing zone, giving the organization a scalable and cheap storage layer. Airflow removes manual effort entirely by orchestrating the continuous movement of data into Snowflake, guaranteeing that pipelines run consistently and fault-tolerantly.
